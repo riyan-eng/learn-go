@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"runtime"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -48,6 +50,15 @@ func main() {
 	v2.POST("/products", v2EndPointHandler)
 	v2.PUT("/products/:productId", v2EndPointHandler)
 	v2.DELETE("/products/:productId", v2EndPointHandler)
+
+	router.Use(cors.Default())
+	router.GET("/cors", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "CORS works!"})
+	})
+	router.Use(FindUserAgent())
+	router.GET("/middleware", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "CORS works!"})
+	})
 
 	router.Run(":8080")
 }
@@ -124,4 +135,11 @@ func printHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("PrintJob #%v started!", p.JobId),
 	})
+}
+
+func FindUserAgent() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.Println(c.GetHeader("User-Agent"))
+		c.Next()
+	}
 }
